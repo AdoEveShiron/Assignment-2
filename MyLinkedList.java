@@ -1,257 +1,162 @@
 import java.util.Iterator;
 
-public class MyLinkedList<T> implements MyList<T> {
+public class MyLinkedList<T extends Comparable<T>> implements MyList<T> {
     private class MyNode {
         T element;
         MyNode next;
         MyNode prev;
-
-        MyNode(T element) {
-            this.element = element;
-        }
+        MyNode(T element) { this.element = element; }
     }
 
     private MyNode head;
     private MyNode tail;
     private int size;
 
-    public MyLinkedList() {
-        this.head = null;
-        this.tail = null;
-        this.size = 0;
-    }
-
-    private void checkIndex(int index) {
-        if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException("Index: " + index + ", size: " + size);
-        }
-    }
-
-    private void checkIndexForAdd(int index) {
-        if (index < 0 || index > size) {
-            throw new IndexOutOfBoundsException("Index: " + index + ", size: " + size);
-        }
-    }
-
-    private MyNode nodeAt(int index) {
-        checkIndex(index);
-
-        if (index < size / 2) {
-            MyNode current = head;
-            for (int i = 0; i < index; i++) {
-                current = current.next;
-            }
-            return current;
-        } else {
-            MyNode current = tail;
-            for (int i = size - 1; i > index; i--) {
-                current = current.prev;
-            }
-            return current;
-        }
-    }
-
-    private MyNode findNode(T element) {
-        MyNode current = head;
-        while (current != null) {
-            if (element == null) {
-                if (current.element == null) {
-                    return current;
-                }
-            } else {
-                if (element.equals(current.element)) {
-                    return current;
-                }
-            }
-            current = current.next;
-        }
-        return null;
-    }
-
-    private T unlink(MyNode node) {
-        MyNode prev = node.prev;
-        MyNode next = node.next;
-
-        if (prev == null) {
-            head = next;
-        } else {
-            prev.next = next;
-        }
-
-        if (next == null) {
-            tail = prev;
-        } else {
-            next.prev = prev;
-        }
-
-        T value = node.element;
-
-        node.prev = null;
-        node.next = null;
-        node.element = null;
-
-        size--;
-        return value;
-    }
-
-    private void addFirst(T element) {
-        MyNode newNode = new MyNode(element);
-
-        if (size == 0) {
-            head = tail = newNode;
-        } else {
+    @Override
+    public void addFirst(T item) {
+        MyNode newNode = new MyNode(item);
+        if (head == null) head = tail = newNode;
+        else {
             newNode.next = head;
             head.prev = newNode;
             head = newNode;
         }
-
         size++;
     }
 
-    private void addLast(T element) {
-        MyNode newNode = new MyNode(element);
-
-        if (size == 0) {
-            head = tail = newNode;
-        } else {
+    @Override
+    public void addLast(T item) {
+        MyNode newNode = new MyNode(item);
+        if (tail == null) head = tail = newNode;
+        else {
             tail.next = newNode;
             newNode.prev = tail;
             tail = newNode;
         }
-
         size++;
     }
 
     @Override
-    public void add(T element) {
-        addLast(element);
-    }
+    public void add(T item) { addLast(item); }
 
     @Override
-    public void add(int index, T element) {
-        checkIndexForAdd(index);
-
-        if (index == 0) {
-            addFirst(element);
-            return;
+    public void add(int index, T item) {
+        if (index < 0 || index > size) throw new IndexOutOfBoundsException();
+        if (index == 0) addFirst(item);
+        else if (index == size) addLast(item);
+        else {
+            MyNode current = getNode(index);
+            MyNode newNode = new MyNode(item);
+            newNode.prev = current.prev;
+            newNode.next = current;
+            current.prev.next = newNode;
+            current.prev = newNode;
+            size++;
         }
+    }
 
-        if (index == size) {
-            addLast(element);
-            return;
-        }
-
-        MyNode current = nodeAt(index);
-        MyNode previous = current.prev;
-        MyNode newNode = new MyNode(element);
-
-        newNode.prev = previous;
-        newNode.next = current;
-        previous.next = newNode;
-        current.prev = newNode;
-
-        size++;
+    private MyNode getNode(int index) {
+        if (index < 0 || index >= size) throw new IndexOutOfBoundsException();
+        MyNode curr = head;
+        for (int i = 0; i < index; i++) curr = curr.next;
+        return curr;
     }
 
     @Override
-    public T get(int index) {
-        return nodeAt(index).element;
+    public T get(int index) { return getNode(index).element; }
+
+    @Override
+    public T getFirst() { return head.element; }
+
+    @Override
+    public T getLast() { return tail.element; }
+
+    @Override
+    public void set(int index, T item) { getNode(index).element = item; }
+
+    @Override
+    public void remove(int index) {
+        MyNode node = getNode(index);
+        if (node.prev != null) node.prev.next = node.next;
+        else head = node.next;
+        if (node.next != null) node.next.prev = node.prev;
+        else tail = node.prev;
+        size--;
     }
 
     @Override
-    public T set(int index, T element) {
-        MyNode current = nodeAt(index);
-        T old = current.element;
-        current.element = element;
-        return old;
-    }
+    public void removeFirst() { remove(0); }
 
     @Override
-    public T remove(int index) {
-        MyNode current = nodeAt(index);
-        return unlink(current);
-    }
+    public void removeLast() { remove(size - 1); }
 
     @Override
-    public boolean remove(T element) {
-        MyNode node = findNode(element);
-        if (node == null) {
-            return false;
-        }
-        unlink(node);
-        return true;
-    }
-
-    @Override
-    public int size() {
-        return size;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return size == 0;
-    }
-
-    @Override
-    public void clear() {
-        MyNode current = head;
-        while (current != null) {
-            MyNode next = current.next;
-            current.prev = null;
-            current.next = null;
-            current.element = null;
-            current = next;
-        }
-        head = null;
-        tail = null;
-        size = 0;
-    }
-
-    @Override
-    public boolean contains(T element) {
-        return indexOf(element) != -1;
-    }
-
-    @Override
-    public int indexOf(T element) {
-        int index = 0;
-        MyNode current = head;
-
-        while (current != null) {
-            if (element == null) {
-                if (current.element == null) {
-                    return index;
+    public void sort() {
+        for (int i = 0; i < size; i++) {
+            MyNode curr = head;
+            while (curr != null && curr.next != null) {
+                if (curr.element.compareTo(curr.next.element) > 0) {
+                    T temp = curr.element;
+                    curr.element = curr.next.element;
+                    curr.next.element = temp;
                 }
-            } else {
-                if (element.equals(current.element)) {
-                    return index;
-                }
+                curr = curr.next;
             }
-            current = current.next;
-            index++;
         }
+    }
 
+    @Override
+    public int indexOf(Object object) {
+        MyNode curr = head;
+        for (int i = 0; i < size; i++) {
+            if (curr.element.equals(object)) return i;
+            curr = curr.next;
+        }
         return -1;
     }
 
     @Override
+    public int lastIndexOf(Object object) {
+        MyNode curr = tail;
+        for (int i = size - 1; i >= 0; i--) {
+            if (curr.element.equals(object)) return i;
+            curr = curr.prev;
+        }
+        return -1;
+    }
+
+    @Override
+    public boolean exists(Object object) { return indexOf(object) != -1; }
+
+    @Override
+    public Object[] toArray() {
+        Object[] arr = new Object[size];
+        MyNode curr = head;
+        for (int i = 0; i < size; i++) {
+            arr[i] = curr.element;
+            curr = curr.next;
+        }
+        return arr;
+    }
+
+    @Override
+    public void clear() {
+        head = tail = null;
+        size = 0;
+    }
+
+    @Override
+    public int size() { return size; }
+
+    @Override
     public Iterator<T> iterator() {
         return new Iterator<T>() {
-            private MyNode current = head;
-
-            @Override
-            public boolean hasNext() {
-                return current != null;
-            }
-
-            @Override
+            private MyNode curr = head;
+            public boolean hasNext() { return curr != null; }
             public T next() {
-                if (!hasNext()) {
-                    throw new IndexOutOfBoundsException("No more elements");
-                }
-                T value = current.element;
-                current = current.next;
-                return value;
+                T val = curr.element;
+                curr = curr.next;
+                return val;
             }
         };
     }
