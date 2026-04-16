@@ -8,7 +8,6 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        // Тестирование MyArrayList
         MyArrayList<Integer> a = new MyArrayList<>();
         a.add(10);
         a.add(20);
@@ -23,7 +22,6 @@ public class Main {
         check(a.size() == 2, "ArrayList remove by index");
         check(a.exists(20), "ArrayList exists");
 
-        // Тестирование MyLinkedList
         MyLinkedList<String> l = new MyLinkedList<>();
         l.add("A");
         l.add("C");
@@ -36,7 +34,6 @@ public class Main {
         if (indexForDelete != -1) l.remove(indexForDelete);
         check(l.size() == 2, "LinkedList remove element");
 
-        // Тестирование MyStack
         MyStack<Integer> stack = new MyStack<>();
         stack.push(1);
         stack.push(2);
@@ -44,7 +41,6 @@ public class Main {
         check(stack.pop() == 3, "Stack pop");
         check(stack.peek() == 2, "Stack peek");
 
-        // Тестирование MyQueue
         MyQueue<Integer> queue = new MyQueue<>();
         queue.enqueue(5);
         queue.enqueue(6);
